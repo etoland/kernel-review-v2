@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea'
 import { Building2, ChevronDown, ChevronUp } from 'lucide-react'
 import { formatRevenue } from '../utils/validation'
+import SectionPanel from './SectionPanel'
 
 interface Props {
   company: Company
@@ -40,12 +41,7 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
       {/* row 1 — key information + industry classification */}
       <div className="grid grid-cols-2 divide-x divide-slate-100">
 
-        {/* key information */}
-        <div className="flex flex-col gap-5 px-8 py-7">
-          <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold text-slate-800">Key information</h3>
-            <p className="text-xs text-slate-400">Core identifiers for this record</p>
-          </div>
+        <SectionPanel title="Key information" description="Core identifiers for this record">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
@@ -107,14 +103,9 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
               )}
             </div>
           </div>
-        </div>
+        </SectionPanel>
 
-        {/* industry classification */}
-        <div className="flex flex-col gap-5 px-8 py-7">
-          <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold text-slate-800">Industry classification</h3>
-            <p className="text-xs text-slate-400">NAICS sector and sub-sector assignment</p>
-          </div>
+        <SectionPanel title="Industry classification" description="NAICS sector and sub-sector assignment">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label className="text-xs font-medium text-slate-500">Vertical</Label>
@@ -161,7 +152,8 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
               )}
             </div>
           </div>
-        </div>
+        </SectionPanel>
+
       </div>
 
       {/* show more toggle */}
@@ -183,12 +175,7 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
       {showMore && (
         <div className="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100">
 
-          {/* company details */}
-          <div className="flex flex-col gap-5 px-8 py-7">
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-sm font-semibold text-slate-800">Company details</h3>
-              <p className="text-xs text-slate-400">Status, structure and financials</p>
-            </div>
+          <SectionPanel title="Company details" description="Status, structure and financials">
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -237,12 +224,19 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
 
               <div className="flex flex-col gap-1.5">
                 <Label className="text-xs font-medium text-slate-500">Annual revenue (USD)</Label>
-                <Input
-                  type="number"
-                  value={company.annualRevenueUsd ?? ''}
-                  onChange={e => set('annualRevenueUsd', Number(e.target.value))}
-                  className="border-slate-200 focus:border-indigo-300 text-sm"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+                  <Input
+                    type="text"
+                    value={company.annualRevenueUsd ? Number(company.annualRevenueUsd).toLocaleString('en-US') : ''}
+                    onChange={e => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '')
+                      set('annualRevenueUsd', raw ? Number(raw) : 0)
+                    }}
+                    className="border-slate-200 focus:border-indigo-300 text-sm pl-7"
+                    placeholder="0"
+                  />
+                </div>
                 {company.annualRevenueUsd > 0 && (
                   <span className="text-xs text-slate-400">
                     {formatRevenue(company.annualRevenueUsd)}
@@ -250,57 +244,51 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
                 )}
               </div>
             </div>
-          </div>
+          </SectionPanel>
 
-          {/* public fields or empty state */}
-          <div className="flex flex-col gap-5 px-8 py-7">
-            {company.fundingStage === 'public' ? (
-              <>
-                <div className="flex flex-col gap-0.5">
-                  <h3 className="text-sm font-semibold text-indigo-700">Public company fields</h3>
-                  <p className="text-xs text-slate-400">Required for publicly listed companies</p>
+          {company.fundingStage === 'public' ? (
+            <SectionPanel title="Public company fields" description="Required for publicly listed companies">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-slate-500">Ticker</Label>
+                  <Input
+                    value={company.ticker ?? ''}
+                    onChange={e => set('ticker', e.target.value)}
+                    className="border-slate-200 focus:border-indigo-300 text-sm font-mono"
+                  />
+                  {errors.ticker && (
+                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                      {errors.ticker as string}
+                    </span>
+                  )}
                 </div>
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs font-medium text-slate-500">Ticker</Label>
-                    <Input
-                      value={company.ticker ?? ''}
-                      onChange={e => set('ticker', e.target.value)}
-                      className="border-slate-200 focus:border-indigo-300 text-sm font-mono"
-                    />
-                    {errors.ticker && (
-                      <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                        {errors.ticker as string}
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs font-medium text-slate-500">Stock exchange</Label>
-                    <Input
-                      value={company.stockExchange ?? ''}
-                      onChange={e => set('stockExchange', e.target.value)}
-                      className="border-slate-200 focus:border-indigo-300 text-sm"
-                    />
-                    {errors.stockExchange && (
-                      <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                        {errors.stockExchange as string}
-                      </span>
-                    )}
-                  </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-slate-500">Stock exchange</Label>
+                  <Input
+                    value={company.stockExchange ?? ''}
+                    onChange={e => set('stockExchange', e.target.value)}
+                    className="border-slate-200 focus:border-indigo-300 text-sm"
+                  />
+                  {errors.stockExchange && (
+                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                      {errors.stockExchange as string}
+                    </span>
+                  )}
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-3 py-8">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                  <Building2 size={16} className="text-slate-300" />
-                </div>
-                <p className="text-xs text-slate-400 text-center max-w-[180px]">
-                  Public company fields appear here when funding stage is set to public
-                </p>
               </div>
-            )}
-          </div>
+            </SectionPanel>
+          ) : (
+            <div className="flex flex-col items-center justify-center px-8 py-7 gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <Building2 size={16} className="text-slate-300" />
+              </div>
+              <p className="text-xs text-slate-400 text-center max-w-[180px]">
+                Public company fields appear here when funding stage is set to public
+              </p>
+            </div>
+          )}
+
         </div>
       )}
 
