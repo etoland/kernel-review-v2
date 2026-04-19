@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { Company, NaicsReference, ValidationErrors } from '../types'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
-import { Building2 } from 'lucide-react'
+import { Building2, ChevronDown, ChevronUp } from 'lucide-react'
 import { formatRevenue } from '../utils/validation'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function CompanyProfile({ company, onChange, errors, naicsReference }: Props) {
+  const [showMore, setShowMore] = useState(false)
   const selectedSector = naicsReference.find(n => n.vertical === company.vertical)
   const subVerticals = selectedSector?.subVerticals ?? []
 
@@ -162,130 +164,145 @@ export default function CompanyProfile({ company, onChange, errors, naicsReferen
         </div>
       </div>
 
-      <div className="border-t border-slate-100" />
+      {/* show more toggle */}
+      <button
+        type="button"
+        onClick={() => setShowMore(v => !v)}
+        className="w-full flex items-center justify-center gap-2 px-8 py-3 border-t border-slate-100 hover:bg-slate-50 transition-colors"
+      >
+        <span className="text-xs font-medium text-indigo-600">
+          {showMore ? 'Show less' : 'Show more details'}
+        </span>
+        {showMore
+          ? <ChevronUp size={14} className="text-indigo-600" />
+          : <ChevronDown size={14} className="text-indigo-600" />
+        }
+      </button>
 
-      {/* row 2 — company details + public fields */}
-      <div className="grid grid-cols-2 divide-x divide-slate-100">
+      {/* expandable — company details + public fields */}
+      {showMore && (
+        <div className="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100">
 
-        {/* company details */}
-        <div className="flex flex-col gap-5 px-8 py-7">
-          <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold text-slate-800">Company details</h3>
-            <p className="text-xs text-slate-400">Status, structure and financials</p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
+          {/* company details */}
+          <div className="flex flex-col gap-5 px-8 py-7">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-sm font-semibold text-slate-800">Company details</h3>
+              <p className="text-xs text-slate-400">Status, structure and financials</p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-slate-500">Status</Label>
+                  <Select value={company.companyStatus} onValueChange={val => set('companyStatus', val)}>
+                    <SelectTrigger className="border-slate-200 text-sm">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="acquired">Acquired</SelectItem>
+                      <SelectItem value="dissolved">Dissolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-slate-500">Entity type</Label>
+                  <Input
+                    value={company.entityType ?? ''}
+                    onChange={e => set('entityType', e.target.value)}
+                    className="border-slate-200 focus:border-indigo-300 text-sm"
+                  />
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs font-medium text-slate-500">Status</Label>
-                <Select value={company.companyStatus} onValueChange={val => set('companyStatus', val)}>
+                <Label className="text-xs font-medium text-slate-500">Funding stage</Label>
+                <Select value={company.fundingStage} onValueChange={val => set('fundingStage', val)}>
                   <SelectTrigger className="border-slate-200 text-sm">
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Select stage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="acquired">Acquired</SelectItem>
-                    <SelectItem value="dissolved">Dissolved</SelectItem>
+                    <SelectItem value="pre-seed">Pre-seed</SelectItem>
+                    <SelectItem value="seed">Seed</SelectItem>
+                    <SelectItem value="series-a">Series A</SelectItem>
+                    <SelectItem value="series-b">Series B</SelectItem>
+                    <SelectItem value="series-c">Series C</SelectItem>
+                    <SelectItem value="series-d">Series D</SelectItem>
+                    <SelectItem value="series-e">Series E</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs font-medium text-slate-500">Entity type</Label>
+                <Label className="text-xs font-medium text-slate-500">Annual revenue (USD)</Label>
                 <Input
-                  value={company.entityType ?? ''}
-                  onChange={e => set('entityType', e.target.value)}
+                  type="number"
+                  value={company.annualRevenueUsd ?? ''}
+                  onChange={e => set('annualRevenueUsd', Number(e.target.value))}
                   className="border-slate-200 focus:border-indigo-300 text-sm"
                 />
+                {company.annualRevenueUsd > 0 && (
+                  <span className="text-xs text-slate-400">
+                    {formatRevenue(company.annualRevenueUsd)}
+                  </span>
+                )}
               </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-medium text-slate-500">Funding stage</Label>
-              <Select value={company.fundingStage} onValueChange={val => set('fundingStage', val)}>
-                <SelectTrigger className="border-slate-200 text-sm">
-                  <SelectValue placeholder="Select stage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pre-seed">Pre-seed</SelectItem>
-                  <SelectItem value="seed">Seed</SelectItem>
-                  <SelectItem value="series-a">Series A</SelectItem>
-                  <SelectItem value="series-b">Series B</SelectItem>
-                  <SelectItem value="series-c">Series C</SelectItem>
-                  <SelectItem value="series-d">Series D</SelectItem>
-                  <SelectItem value="series-e">Series E</SelectItem>
-                  <SelectItem value="public">Public</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-medium text-slate-500">Annual revenue (USD)</Label>
-              <Input
-                type="number"
-                value={company.annualRevenueUsd ?? ''}
-                onChange={e => set('annualRevenueUsd', Number(e.target.value))}
-                className="border-slate-200 focus:border-indigo-300 text-sm"
-              />
-              {company.annualRevenueUsd > 0 && (
-                <span className="text-xs text-slate-400">
-                  {formatRevenue(company.annualRevenueUsd)}
-                </span>
-              )}
             </div>
           </div>
-        </div>
 
-        {/* public fields or empty state */}
-        <div className="flex flex-col gap-5 px-8 py-7">
-          {company.fundingStage === 'public' ? (
-            <>
-              <div className="flex flex-col gap-0.5">
-                <h3 className="text-sm font-semibold text-indigo-700">Public company fields</h3>
-                <p className="text-xs text-slate-400">Required for publicly listed companies</p>
-              </div>
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs font-medium text-slate-500">Ticker</Label>
-                  <Input
-                    value={company.ticker ?? ''}
-                    onChange={e => set('ticker', e.target.value)}
-                    className="border-slate-200 focus:border-indigo-300 text-sm font-mono"
-                  />
-                  {errors.ticker && (
-                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                      {errors.ticker as string}
-                    </span>
-                  )}
+          {/* public fields or empty state */}
+          <div className="flex flex-col gap-5 px-8 py-7">
+            {company.fundingStage === 'public' ? (
+              <>
+                <div className="flex flex-col gap-0.5">
+                  <h3 className="text-sm font-semibold text-indigo-700">Public company fields</h3>
+                  <p className="text-xs text-slate-400">Required for publicly listed companies</p>
                 </div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs font-medium text-slate-500">Ticker</Label>
+                    <Input
+                      value={company.ticker ?? ''}
+                      onChange={e => set('ticker', e.target.value)}
+                      className="border-slate-200 focus:border-indigo-300 text-sm font-mono"
+                    />
+                    {errors.ticker && (
+                      <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                        {errors.ticker as string}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs font-medium text-slate-500">Stock exchange</Label>
-                  <Input
-                    value={company.stockExchange ?? ''}
-                    onChange={e => set('stockExchange', e.target.value)}
-                    className="border-slate-200 focus:border-indigo-300 text-sm"
-                  />
-                  {errors.stockExchange && (
-                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                      {errors.stockExchange as string}
-                    </span>
-                  )}
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs font-medium text-slate-500">Stock exchange</Label>
+                    <Input
+                      value={company.stockExchange ?? ''}
+                      onChange={e => set('stockExchange', e.target.value)}
+                      className="border-slate-200 focus:border-indigo-300 text-sm"
+                    />
+                    {errors.stockExchange && (
+                      <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                        {errors.stockExchange as string}
+                      </span>
+                    )}
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full gap-3 py-8">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                  <Building2 size={16} className="text-slate-300" />
+                </div>
+                <p className="text-xs text-slate-400 text-center max-w-[180px]">
+                  Public company fields appear here when funding stage is set to public
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-3 py-8">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <Building2 size={16} className="text-slate-300" />
-              </div>
-              <p className="text-xs text-slate-400 text-center max-w-[180px]">
-                Public company fields appear here when funding stage is set to public
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   )
