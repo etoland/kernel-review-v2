@@ -2,6 +2,8 @@
 
 A production-ready React application for reviewing and editing company records.
 
+![App preview](preview.png)
+
 ## Setup
 
 ```bash
