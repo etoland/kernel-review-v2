@@ -121,9 +121,11 @@ src/
     useCompany.ts           # state logic, validation, export
   utils/
     validation.ts           # business rule validation + formatRevenue
+    validation.test.ts      # 35 unit tests for all business rules
     export.ts               # JSON download helper
   components/
     ui/                     # shadcn components
+    SectionPanel.tsx        # reusable titled section wrapper
     CompanyProfile.tsx      # grouped form with character count
     Directors.tsx           # director list, add/remove, two-column layout
     Locations.tsx           # location list, add/remove, two-column layout
